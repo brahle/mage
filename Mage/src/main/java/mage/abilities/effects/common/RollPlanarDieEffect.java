@@ -9,6 +9,8 @@ import mage.abilities.effects.OneShotEffect;
 import mage.constants.Outcome;
 import mage.constants.PlanarDieRollResult;
 import mage.game.Game;
+import mage.game.command.CommandObject;
+import mage.game.command.Plane;
 import mage.players.Player;
 import mage.target.Target;
 import mage.target.targetpointer.FixedTarget;
@@ -53,6 +55,62 @@ public class RollPlanarDieEffect extends OneShotEffect {
         }
     }
 
+    public boolean applyChaos(Game game, Ability source) {
+        Player controller = game.getPlayer(source.getControllerId());
+        if (controller == null || chaosEffects == null || chaosTargets == null) {
+            return false;
+        }
+        for (int i = 0; i < chaosTargets.size(); i++) {
+            Target target = chaosTargets.get(i);
+            if (target != null) {
+                target.clearChosen();
+            }
+        }
+
+        for (int i = 0; i < chaosEffects.size(); i++) {
+            Effect effect = chaosEffects.get(i);
+            Target target = null;
+            if (chaosTargets.size() > i) {
+                target = chaosTargets.get(i);
+            }
+            boolean done = false;
+            while (controller.canRespond() && effect != null && !done) {
+                if (target != null && !target.isChosen(game) && target.canChoose(controller.getId(), source, game)) {
+                    controller.chooseTarget(Outcome.Benefit, target, source, game);
+                    source.addTarget(target);
+                }
+                if (target != null) {
+                    effect.setTargetPointer(new FixedTarget(target.getFirstTarget()));
+                }
+                try {
+                    effect.apply(game, source);
+                } catch (UnsupportedOperationException exception) {
+                }
+                if (effect instanceof ContinuousEffect) {
+                    game.addEffect((ContinuousEffect) effect, source);
+                }
+                done = true;
+            }
+        }
+        return true;
+    }
+
+    public static boolean chaosEnsues(Game game, Ability source) {
+        for (CommandObject cobject : game.getState().getCommand()) {
+            if (cobject instanceof Plane) {
+                Plane plane = (Plane) cobject;
+                for (Ability ability : plane.getAbilities()) {
+                    for (Effect effect : ability.getEffects()) {
+                        if (effect instanceof RollPlanarDieEffect) {
+                            return ((RollPlanarDieEffect) effect).applyChaos(game, source);
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     @Override
     public boolean apply(Game game, Ability source) {
         Player controller = game.getPlayer(source.getControllerId());
@@ -60,38 +118,7 @@ public class RollPlanarDieEffect extends OneShotEffect {
         if (controller != null && mageObject != null) {
             PlanarDieRollResult planarRoll = controller.rollPlanarDie(outcome, source, game);
             if (planarRoll == PlanarDieRollResult.CHAOS_ROLL && chaosEffects != null && chaosTargets != null) {
-                for (int i = 0; i < chaosTargets.size(); i++) {
-                    Target target = chaosTargets.get(i);
-                    if (target != null) {
-                        target.clearChosen();
-                    }
-                }
-
-                for (int i = 0; i < chaosEffects.size(); i++) {
-                    Effect effect = chaosEffects.get(i);
-                    Target target = null;
-                    if (chaosTargets.size() > i) {
-                        target = chaosTargets.get(i);
-                    }
-                    boolean done = false;
-                    while (controller.canRespond() && effect != null && !done) {
-                        if (target != null && !target.isChosen(game) && target.canChoose(controller.getId(), source, game)) {
-                            controller.chooseTarget(Outcome.Benefit, target, source, game);
-                            source.addTarget(target);
-                        }
-                        if (target != null) {
-                            effect.setTargetPointer(new FixedTarget(target.getFirstTarget()));
-                        }
-                        try {
-                            effect.apply(game, source);
-                        } catch (UnsupportedOperationException exception) {
-                        }
-                        if (effect instanceof ContinuousEffect) {
-                            game.addEffect((ContinuousEffect) effect, source);
-                        }
-                        done = true;
-                    }
-                }
+                applyChaos(game, source);
             } else if (planarRoll == PlanarDieRollResult.PLANAR_ROLL) {
                 return new PlaneswalkEffect(false).apply(game, source);
             }
