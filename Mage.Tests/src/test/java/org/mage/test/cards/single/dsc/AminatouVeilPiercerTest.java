@@ -257,4 +257,30 @@ public class AminatouVeilPiercerTest extends CardTestPlayerBase {
         assertCounterCount(playerA, "Nyxborn Hydra", CounterType.P1P1, 1);
         assertTappedCount("Tropical Island", true, 4);
     }
+
+    @Test
+    public void test_MiracleEnchantmentKickerAdditionalCost() {
+        setStrictChooseMode(true);
+        addCard(Zone.BATTLEFIELD, playerA, "Aminatou, Veil Piercer");
+        addCard(Zone.BATTLEFIELD, playerA, "Island", 6);
+        addCard(Zone.BATTLEFIELD, playerB, "Grizzly Bears");
+        addCard(Zone.HAND, playerA, "Reach Through Mists");
+        addCard(Zone.LIBRARY, playerA, "Bubble Snare");
+        addCard(Zone.LIBRARY, playerA, "Swamp", 2);
+        skipInitShuffling();
+
+        addTarget(playerA, "Swamp^Swamp");
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Reach Through Mists");
+        setChoice(playerA, true); // reveal miracle
+        setChoice(playerA, true); // cast for miracle
+        setChoice(playerA, true); // pay kicker {2}{U}
+        addTarget(playerA, "Grizzly Bears");
+
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertPermanentCount(playerA, "Bubble Snare", 1);
+        assertTapped("Grizzly Bears", true);
+        assertTappedCount("Island", true, 5); // 1 for Reach + 4 for kicked Bubble Snare ({U} miracle + {2}{U} kicker)
+    }
 }

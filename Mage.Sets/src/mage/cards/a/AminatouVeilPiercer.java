@@ -10,6 +10,7 @@ import mage.abilities.costs.CostAdjuster;
 import mage.abilities.costs.mana.GenericManaCost;
 import mage.abilities.costs.mana.ManaCost;
 import mage.abilities.costs.mana.ManaCosts;
+import mage.abilities.costs.mana.ManaCostsImpl;
 import mage.abilities.costs.mana.VariableManaCost;
 import mage.abilities.effects.ContinuousEffectImpl;
 import mage.abilities.effects.OneShotEffect;
@@ -154,7 +155,10 @@ class AminatouMiracleEffect extends OneShotEffect {
         SpellAbility abilityToCast = cardToCast.getSpellAbility().copy();
         if (cardToCast.getManaCost().stream().anyMatch(VariableManaCost.class::isInstance)) {
             CostAdjuster existingAdjuster = abilityToCast.getCostAdjuster();
+            final Card finalCardToCast = cardToCast;
             abilityToCast.setCostAdjuster(new CostAdjuster() {
+                private boolean applied = false;
+
                 @Override
                 public void prepareX(Ability ability, Game game) {
                     if (existingAdjuster != null) {
@@ -167,7 +171,28 @@ class AminatouMiracleEffect extends OneShotEffect {
                     if (existingAdjuster != null) {
                         existingAdjuster.prepareCost(ability, game);
                     }
-                    CardUtil.reduceCost(ability, 4);
+                    if (applied) {
+                        return;
+                    }
+                    applied = true;
+                    int xValue = CardUtil.getSourceCostsTagX(game, ability, 0);
+                    ManaCosts<ManaCost> baseCostWithX = new ManaCostsImpl<>();
+                    for (ManaCost manaCost : finalCardToCast.getManaCost()) {
+                        if (manaCost instanceof VariableManaCost) {
+                            VariableManaCost varCost = (VariableManaCost) manaCost;
+                            int varAmount = xValue * varCost.getXInstancesCount();
+                            if (varAmount > 0) {
+                                baseCostWithX.add(new GenericManaCost(varAmount));
+                            }
+                        } else {
+                            baseCostWithX.add(manaCost.copy());
+                        }
+                    }
+                    ManaCosts<ManaCost> reducedBase = CardUtil.reduceCost(baseCostWithX.copy(), 4);
+                    int discount = Math.max(0, baseCostWithX.getMana().getGeneric() - reducedBase.getMana().getGeneric());
+                    if (discount > 0) {
+                        CardUtil.reduceCost(ability, discount);
+                    }
                 }
 
                 @Override
