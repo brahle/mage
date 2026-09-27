@@ -937,10 +937,10 @@ public final class DoctorWho extends ExpansionSet {
         cards.add(new SetCardInfo("The Flood of Mars", 951, Rarity.RARE, mage.cards.t.TheFloodOfMars.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("The Flux", 691, Rarity.RARE, mage.cards.t.TheFlux.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("The Flux", 86, Rarity.RARE, mage.cards.t.TheFlux.class, NON_FULL_USE_VARIOUS));
-        //cards.add(new SetCardInfo("The Foretold Soldier", 102, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
-        //cards.add(new SetCardInfo("The Foretold Soldier", 395, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
-        //cards.add(new SetCardInfo("The Foretold Soldier", 707, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
-        //cards.add(new SetCardInfo("The Foretold Soldier", 986, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("The Foretold Soldier", 102, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("The Foretold Soldier", 395, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("The Foretold Soldier", 707, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("The Foretold Soldier", 986, Rarity.RARE, mage.cards.t.TheForetoldSoldier.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("The Fourth Doctor", "555z", Rarity.MYTHIC, mage.cards.t.TheFourthDoctor.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("The Fourth Doctor", 1006, Rarity.MYTHIC, mage.cards.t.TheFourthDoctor.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("The Fourth Doctor", 1146, Rarity.MYTHIC, mage.cards.t.TheFourthDoctor.class, NON_FULL_USE_VARIOUS));

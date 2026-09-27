@@ -155,23 +155,58 @@ public class ForetellAbility extends SpecialAction {
         controller.moveCardsToExile(card, source, game, false, exileId, " Foretell Turn Number: " + game.getTurnNum());
         card.setFaceDown(true, game);
 
-        // all done pre-processing so stick the foretell cost effect onto the main card
-        // note that the card is not foretell'd into exile, it is put into exile and made foretold
-        // If the card is a non-land, it will not be exiled.
-        if (foretellAbility != null) {
+        Card exiledCard = game.getCard(card.getMainCard().getId());
+        if (foretellAbility != null && exiledCard != null) {
             // copy source and use it for the foretold effect on the exiled card
             // bug #8673
             Ability copiedSource = source.copy();
             copiedSource.newId();
-            copiedSource.setSourceId(card.getId());
+            copiedSource.setSourceId(exiledCard.getId());
             game.getState().setValue(card.getMainCard().getId().toString() + "Foretell Turn Number", game.getTurnNum());
-            foretellAbility.setSourceId(card.getId());
-            foretellAbility.setControllerId(card.getOwnerId());
-            game.getState().addOtherAbility(card, foretellAbility);
+            foretellAbility.setSourceId(exiledCard.getId());
+            foretellAbility.setControllerId(exiledCard.getOwnerId());
+            game.getState().addOtherAbility(exiledCard, foretellAbility);
             foretellAbility.activate(game, true);
-            game.addEffect(new ForetellAddCostEffect(new MageObjectReference(card, game)), copiedSource);
-            game.fireEvent(new GameEvent(GameEvent.EventType.CARD_FORETOLD, card.getId(), copiedSource, copiedSource.getControllerId(), 0, false));
+            game.addEffect(new ForetellAddCostEffect(new MageObjectReference(exiledCard, game)), copiedSource);
+            game.fireEvent(new GameEvent(GameEvent.EventType.CARD_FORETOLD, exiledCard.getId(), copiedSource, copiedSource.getControllerId(), 0, false));
         }
+        return true;
+    }
+
+    /**
+     * For use in apply() method of OneShotEffect
+     * Exile the target card. It becomes foretold with the specified foretell cost.
+     */
+    public static boolean doExileBecomesForetold(Card card, Game game, Ability source, String foretellCost) {
+        Player controller = game.getPlayer(source.getControllerId());
+        if (controller == null || card == null) {
+            return false;
+        }
+
+        UUID exileId = CardUtil.getExileZoneId(card.getMainCard().getId().toString() + "foretellAbility", game);
+        controller.moveCardsToExile(card, source, game, false, exileId, " Foretell Turn Number: " + game.getTurnNum());
+        card.setFaceDown(true, game);
+
+        Card mainCard = card.getMainCard();
+        Card exiledCard = game.getCard(mainCard.getId());
+        if (exiledCard == null) {
+            return false;
+        }
+
+        Ability copiedSource = source.copy();
+        copiedSource.newId();
+        copiedSource.setSourceId(exiledCard.getId());
+        copiedSource.setControllerId(exiledCard.getOwnerId());
+        game.getState().setValue(mainCard.getId().toString() + "Foretell Turn Number", game.getTurnNum());
+        game.getState().setValue(mainCard.getId().toString() + "Foretell Cost", foretellCost);
+
+        ForetellAbility foretellAbility = new ForetellAbility(exiledCard, foretellCost);
+        foretellAbility.setSourceId(exiledCard.getId());
+        foretellAbility.setControllerId(exiledCard.getOwnerId());
+        game.getState().addOtherAbility(exiledCard, foretellAbility);
+        foretellAbility.activate(game, true);
+        game.addEffect(new ForetellAddCostEffect(new MageObjectReference(exiledCard, game)), copiedSource);
+        game.fireEvent(new GameEvent(GameEvent.EventType.CARD_FORETOLD, exiledCard.getId(), copiedSource, copiedSource.getControllerId(), 0, false));
         return true;
     }
 
