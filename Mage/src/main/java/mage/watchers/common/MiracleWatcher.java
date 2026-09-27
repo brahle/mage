@@ -51,9 +51,13 @@ public class MiracleWatcher extends Watcher {
     private void checkMiracleAbility(GameEvent event, Game game) {
         Card card = game.getCard(event.getTargetId());
         if (card != null) {
+            game.applyEffects();
             for (Ability ability : card.getAbilities(game)) {
                 if (ability instanceof MiracleAbility) {
                     Player controller = game.getPlayer(ability.getControllerId());
+                    if (controller == null) {
+                        controller = game.getPlayer(card.getOwnerId());
+                    }
                     if (controller != null) {
                         Cards cards = new CardsImpl(card);
                         controller.lookAtCards("Miracle", cards, game);

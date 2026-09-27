@@ -1,7 +1,9 @@
 package mage.cards;
 
 import mage.abilities.Abilities;
+import mage.abilities.AbilitiesImpl;
 import mage.abilities.Ability;
+import mage.game.CardState;
 import mage.abilities.common.EntersBattlefieldAbility;
 import mage.abilities.common.RoomAbility;
 import mage.abilities.effects.OneShotEffect;
@@ -59,7 +61,15 @@ public abstract class RoomCard extends SplitCard {
 
     @Override
     public Abilities<Ability> getAbilities(Game game) {
-        return this.abilities;
+        Abilities<Ability> allAbilities = new AbilitiesImpl<>();
+        allAbilities.addAll(this.abilities);
+        if (game != null) {
+            CardState cardState = game.getState().getCardState(this.getId());
+            if (cardState != null) {
+                allAbilities.addAll(cardState.getAbilities());
+            }
+        }
+        return allAbilities;
     }
 
     @Override

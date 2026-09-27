@@ -7,6 +7,7 @@ import mage.abilities.TriggeredAbilityImpl;
 import mage.abilities.costs.mana.ManaCost;
 import mage.abilities.costs.mana.ManaCosts;
 import mage.abilities.costs.mana.ManaCostsImpl;
+import mage.abilities.effects.Effect;
 import mage.abilities.effects.OneShotEffect;
 import mage.cards.Card;
 import mage.constants.Outcome;
@@ -82,7 +83,13 @@ public class MiracleAbility extends TriggeredAbilityImpl {
         ruleText = "Miracle " + miracleCosts + staticRule;
     }
 
-    private MiracleAbility(final MiracleAbility ability) {
+    public MiracleAbility(Effect effect, String ruleText) {
+        super(Zone.HAND, effect, true);
+        addWatcher(new MiracleWatcher());
+        this.ruleText = ruleText;
+    }
+
+    protected MiracleAbility(final MiracleAbility ability) {
         super(ability);
         this.ruleText = ability.ruleText;
     }
