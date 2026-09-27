@@ -1042,6 +1042,26 @@ public class GameState implements Serializable, Copyable<GameState> {
         }
     }
 
+    public void addSimultaneousPhasedOutToBatch(PhasedOutEvent phasedOutEvent, Game game) {
+        // Combine multiple phased out events in the single event (batch)
+        // see GameEvent.PHASED_OUT_BATCH
+
+        // existing batch
+        boolean isBatchUsed = false;
+        for (GameEvent event : simultaneousEvents) {
+            if (event instanceof PhasedOutBatchEvent) {
+                ((PhasedOutBatchEvent) event).addEvent(phasedOutEvent);
+                isBatchUsed = true;
+                break;
+            }
+        }
+
+        // new batch
+        if (!isBatchUsed) {
+            addSimultaneousEvent(new PhasedOutBatchEvent(phasedOutEvent), game);
+        }
+    }
+
     public void handleEvent(GameEvent event, Game game) {
         watchers.watch(event, game);
         delayed.checkTriggers(event, game);
