@@ -167,6 +167,7 @@ class AminatouMiracleEffect extends OneShotEffect {
                     if (existingAdjuster != null) {
                         existingAdjuster.prepareCost(ability, game);
                     }
+                    CardUtil.reduceCost(ability, 4);
                 }
 
                 @Override
@@ -181,7 +182,6 @@ class AminatouMiracleEffect extends OneShotEffect {
                     if (existingAdjuster != null) {
                         existingAdjuster.reduceCost(ability, game);
                     }
-                    CardUtil.reduceCost(ability, 4);
                 }
             });
         } else {

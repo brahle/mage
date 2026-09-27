@@ -233,4 +233,28 @@ public class AminatouVeilPiercerTest extends CardTestPlayerBase {
         assertCounterCount(playerA, "Nyxborn Hydra", CounterType.P1P1, 4);
         assertTappedCount("Forest", true, 1);
     }
+
+    @Test
+    public void test_MiracleVariableX_SphereOfResistanceTax() {
+        setStrictChooseMode(true);
+        addCard(Zone.BATTLEFIELD, playerA, "Aminatou, Veil Piercer");
+        addCard(Zone.BATTLEFIELD, playerA, "Sphere of Resistance");
+        addCard(Zone.BATTLEFIELD, playerA, "Tropical Island", 5);
+        addCard(Zone.HAND, playerA, "Reach Through Mists");
+        addCard(Zone.LIBRARY, playerA, "Nyxborn Hydra");
+        addCard(Zone.LIBRARY, playerA, "Swamp", 2);
+        skipInitShuffling();
+
+        addTarget(playerA, "Swamp^Swamp");
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Reach Through Mists");
+        setChoice(playerA, true);
+        setChoice(playerA, true);
+        setChoice(playerA, "X=1");
+
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertCounterCount(playerA, "Nyxborn Hydra", CounterType.P1P1, 1);
+        assertTappedCount("Tropical Island", true, 4);
+    }
 }
