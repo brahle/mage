@@ -3,6 +3,7 @@ package org.mage.test.cards.single.moc;
 import mage.constants.PhaseStep;
 import mage.constants.Planes;
 import mage.constants.Zone;
+import mage.counters.CounterType;
 import org.junit.Test;
 import org.mage.test.serverside.base.CardTestPlayerBase;
 
@@ -96,5 +97,24 @@ public class PathOfThePyromancerTest extends CardTestPlayerBase {
 
         assertPermanentCount(playerA, "Eldrazi Token", 0);
         assertHandCount(playerA, 2);
+    }
+
+    @Test
+    public void test_PathChaosUsesPlaneSource() {
+        addPlane(playerA, Planes.PLANE_FEEDING_GROUNDS);
+        addCard(Zone.BATTLEFIELD, playerA, "Mountain", 5);
+        addCard(Zone.BATTLEFIELD, playerA, "Silver Knight");
+        addCard(Zone.HAND, playerA, "Path of the Pyromancer");
+
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Path of the Pyromancer");
+        setChoice(playerA, false);
+        setChoice(playerB, false);
+        addTarget(playerA, "Silver Knight");
+
+        setStrictChooseMode(true);
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertCounterCount(playerA, "Silver Knight", CounterType.P1P1, 2);
     }
 }
