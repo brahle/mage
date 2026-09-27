@@ -87,4 +87,27 @@ public class RiverSongsDiaryTest extends CardTestPlayerBase {
         // 4 bolts on Turn 1 (12 damage) + 1 free bolt on Turn 3 (3 damage) = 15 damage
         assertLife(playerB, 20 - 15);
     }
+
+    @Test
+    public void test_UpkeepTrigger_DiaryRemovedWithUpkeepOnStack_StillCasts() {
+        setStrictChooseMode(true);
+        addCard(Zone.BATTLEFIELD, playerA, "River Song's Diary");
+        addCard(Zone.BATTLEFIELD, playerA, "Mountain", 4);
+        addCard(Zone.HAND, playerA, "Lightning Bolt", 4);
+        addCard(Zone.BATTLEFIELD, playerB, "Plains", 2);
+        addCard(Zone.HAND, playerB, "Disenchant");
+
+        for (int i = 0; i < 4; i++) {
+            castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Lightning Bolt", playerB);
+        }
+        castSpell(3, PhaseStep.UPKEEP, playerB, "Disenchant", "River Song's Diary");
+        setChoice(playerA, true);
+        addTarget(playerA, playerB);
+
+        setStopAt(3, PhaseStep.PRECOMBAT_MAIN);
+        execute();
+
+        assertGraveyardCount(playerA, "River Song's Diary", 1);
+        assertLife(playerB, 20 - 15);
+    }
 }

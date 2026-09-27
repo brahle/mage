@@ -82,9 +82,12 @@ enum RiverSongsDiaryExiledSpellsCount implements DynamicValue {
 
     @Override
     public int calculate(Game game, Ability sourceAbility, Effect effect) {
+        int zcc = sourceAbility.getStackMomentSourceZCC();
+        if (zcc == 0) {
+            zcc = game.getState().getZoneChangeCounter(sourceAbility.getSourceId());
+        }
         ExileZone exileZone = game.getExile().getExileZone(CardUtil.getExileZoneId(
-                game, sourceAbility.getSourceId(),
-                game.getState().getZoneChangeCounter(sourceAbility.getSourceId())
+                game, sourceAbility.getSourceId(), zcc
         ));
         if (exileZone != null) {
             return exileZone.size();
