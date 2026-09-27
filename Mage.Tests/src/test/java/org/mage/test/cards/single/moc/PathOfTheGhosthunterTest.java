@@ -3,6 +3,7 @@ package org.mage.test.cards.single.moc;
 import mage.constants.PhaseStep;
 import mage.constants.Planes;
 import mage.constants.Zone;
+import mage.counters.CounterType;
 import org.junit.Test;
 import org.mage.test.serverside.base.CardTestPlayerBase;
 
@@ -86,5 +87,25 @@ public class PathOfTheGhosthunterTest extends CardTestPlayerBase {
         assertPermanentCount(playerA, "Spirit Token", 2);
         assertPermanentCount(playerA, "Eldrazi Token", 0);
         assertHandCount(playerA, 0);
+    }
+
+    @Test
+    public void test_PathChaosUsesPlaneSource() {
+        addPlane(playerA, Planes.PLANE_FEEDING_GROUNDS);
+        addCard(Zone.BATTLEFIELD, playerA, "Plains", 4);
+        addCard(Zone.BATTLEFIELD, playerA, "Black Knight");
+        addCard(Zone.HAND, playerA, "Path of the Ghosthunter");
+
+        setChoice(playerA, "X=2");
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Path of the Ghosthunter");
+        setChoice(playerA, false);
+        setChoice(playerB, false);
+        addTarget(playerA, "Black Knight");
+
+        setStrictChooseMode(true);
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertCounterCount(playerA, "Black Knight", CounterType.P1P1, 2);
     }
 }
