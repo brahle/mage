@@ -4,6 +4,7 @@ import mage.constants.CardType;
 import mage.constants.PhaseStep;
 import mage.constants.Planes;
 import mage.constants.Zone;
+import mage.counters.CounterType;
 import org.junit.Test;
 import org.mage.test.serverside.base.CardTestPlayerBase;
 
@@ -95,5 +96,26 @@ public class PathOfTheSchemerTest extends CardTestPlayerBase {
         assertPermanentCount(playerA, "Grizzly Bears", 1);
         assertPermanentCount(playerA, "Eldrazi Token", 0);
         assertHandCount(playerA, 0);
+    }
+
+    @Test
+    public void test_PathChaosUsesPlaneSource() {
+        addPlane(playerA, Planes.PLANE_FEEDING_GROUNDS);
+        addCard(Zone.BATTLEFIELD, playerA, "Swamp", 5);
+        addCard(Zone.BATTLEFIELD, playerA, "Mirran Crusader");
+        addCard(Zone.GRAVEYARD, playerA, "Grizzly Bears");
+        addCard(Zone.HAND, playerA, "Path of the Schemer");
+
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Path of the Schemer");
+        setChoice(playerA, "Grizzly Bears");
+        setChoice(playerA, false);
+        setChoice(playerB, false);
+        addTarget(playerA, "Mirran Crusader");
+
+        setStrictChooseMode(true);
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertCounterCount(playerA, "Mirran Crusader", CounterType.P1P1, 3);
     }
 }
