@@ -32,8 +32,7 @@ public class DeathInHeavenTest extends CardTestPlayerBase {
         // Player A has mana, Death in Heaven, and Lightning Bolt
         addCard(Zone.HAND, playerA, deathInHeaven);
         addCard(Zone.HAND, playerA, "Lightning Bolt");
-        addCard(Zone.BATTLEFIELD, playerA, "Swamp", 4);
-        addCard(Zone.BATTLEFIELD, playerA, "Mountain", 2);
+        addCard(Zone.BATTLEFIELD, playerA, "Badlands", 6);
 
         // Player B starts with cards in graveyard and a creature on the battlefield
         addCard(Zone.GRAVEYARD, playerB, "Serra Angel"); // creature card in GY initially
