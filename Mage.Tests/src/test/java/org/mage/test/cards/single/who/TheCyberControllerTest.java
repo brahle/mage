@@ -33,6 +33,7 @@ public class TheCyberControllerTest extends CardTestPlayerBase {
 
         // Player B library: top 3 cards are Grizzly Bears, Lightning Bolt, Silvercoat Lion
         // Order on top: index 0 is top
+        skipInitShuffling();
         removeAllCardsFromLibrary(playerB);
         addCard(Zone.LIBRARY, playerB, "Forest");
         addCard(Zone.LIBRARY, playerB, "Silvercoat Lion"); // creature
