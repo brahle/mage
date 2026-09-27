@@ -1,12 +1,16 @@
 package mage.cards.p;
 
 import mage.abilities.Ability;
-import mage.abilities.common.AsEntersBattlefieldAbility;
+import mage.abilities.common.AsBecomesAttachedToCreatureSourceAbility;
 import mage.abilities.common.SimpleStaticAbility;
+import mage.abilities.costs.mana.GenericManaCost;
 import mage.abilities.effects.ContinuousEffectImpl;
 import mage.abilities.effects.common.ChooseACardNameEffect;
 import mage.abilities.effects.common.ChooseCreatureTypeEffect;
+import mage.abilities.effects.common.combat.CantBeBlockedAttachedEffect;
+import mage.abilities.effects.common.continuous.GainAbilityAttachedEffect;
 import mage.abilities.keyword.EquipAbility;
+import mage.abilities.keyword.WardAbility;
 import mage.cards.CardImpl;
 import mage.cards.CardSetInfo;
 import mage.constants.*;
@@ -25,16 +29,23 @@ public final class PsychicPaper extends CardImpl {
 
         this.subtype.add(SubType.EQUIPMENT);
 
-        // As Psychic Paper enters the battlefield, choose a card name and a creature type.
-        AsEntersBattlefieldAbility entersAbility = new AsEntersBattlefieldAbility(
-                new ChooseACardNameEffect(ChooseACardNameEffect.TypeOfName.ALL),
-                "choose a card name and a creature type"
+        // As Psychic Paper becomes attached to a creature, choose a creature card name and a creature type.
+        AsBecomesAttachedToCreatureSourceAbility attachAbility = new AsBecomesAttachedToCreatureSourceAbility(
+                new ChooseACardNameEffect(ChooseACardNameEffect.TypeOfName.CREATURE_NAME),
+                "choose a creature card name and a creature type"
         );
-        entersAbility.addEffect(new ChooseCreatureTypeEffect(Outcome.Neutral));
-        this.addAbility(entersAbility);
+        attachAbility.addEffect(new ChooseCreatureTypeEffect(Outcome.Neutral));
+        this.addAbility(attachAbility);
 
-        // Equipped creature has the chosen name and is the chosen creature type in addition to its other types.
-        this.addAbility(new SimpleStaticAbility(new PsychicPaperEffect()));
+        // Equipped creature has ward {1}, it can't be blocked, and its name and creature type are the last chosen name and creature type.
+        Ability ability = new SimpleStaticAbility(new GainAbilityAttachedEffect(
+                new WardAbility(new GenericManaCost(1), false), AttachmentType.EQUIPMENT
+        ).setText("Equipped creature has ward {1}"));
+        ability.addEffect(new CantBeBlockedAttachedEffect(AttachmentType.EQUIPMENT)
+                .setText(", it can't be blocked")
+        );
+        ability.addEffect(new PsychicPaperEffect());
+        this.addAbility(ability);
 
         // Equip {2}
         this.addAbility(new EquipAbility(2));
@@ -54,7 +65,7 @@ class PsychicPaperEffect extends ContinuousEffectImpl {
 
     PsychicPaperEffect() {
         super(Duration.WhileOnBattlefield, Outcome.Benefit);
-        staticText = "equipped creature has the chosen name and is the chosen creature type in addition to its other types";
+        staticText = ", and its name and creature type are the last chosen name and creature type";
     }
 
     private PsychicPaperEffect(final PsychicPaperEffect effect) {
@@ -84,8 +95,9 @@ class PsychicPaperEffect extends ContinuousEffectImpl {
                 }
                 break;
             case TypeChangingEffects_4:
-                SubType chosenSubType = (SubType) game.getState().getValue(equipment.getId() + "_type");
+                SubType chosenSubType = ChooseCreatureTypeEffect.getChosenCreatureType(equipment.getId(), game);
                 if (chosenSubType != null) {
+                    creature.removeAllCreatureTypes(game);
                     creature.addSubType(game, chosenSubType);
                 }
                 break;
