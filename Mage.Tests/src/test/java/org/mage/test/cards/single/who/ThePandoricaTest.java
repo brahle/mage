@@ -93,7 +93,7 @@ public class ThePandoricaTest extends CardTestPlayerBase {
     }
 
     @Test
-    public void test_LeavesBattlefieldBeforeResolveDoesNotPhaseOut() {
+    public void test_LeavesBattlefieldBeforeResolvePhasesOut() {
         setStrictChooseMode(true);
 
         addCard(Zone.BATTLEFIELD, playerA, "Plains", 2);
@@ -108,13 +108,40 @@ public class ThePandoricaTest extends CardTestPlayerBase {
         // In response, Player B destroys Pandorica
         castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerB, "Disenchant", pandorica);
 
-        setStopAt(1, PhaseStep.POSTCOMBAT_MAIN);
+        // Turn 1 postcombat: Pandorica is in GY, Bears untapped and phased out
+        checkPermanentCount("Bears phased out turn 1", 1, PhaseStep.POSTCOMBAT_MAIN, playerB, "Grizzly Bears", 0);
+
+        // Turn 2 postcombat: Bears phases in normally during player B's untap step
+        setStopAt(2, PhaseStep.POSTCOMBAT_MAIN);
         execute();
 
         // Pandorica destroyed
         assertGraveyardCount(playerA, pandorica, 1);
-        // Bears was untapped by the ability, but did NOT phase out because Pandorica was gone!
         assertPermanentCount(playerB, "Grizzly Bears", 1);
         assertTapped("Grizzly Bears", false);
+    }
+
+    @Test
+    public void test_RetappedAfterUntap() {
+        setStrictChooseMode(true);
+
+        addCard(Zone.BATTLEFIELD, playerA, pandorica);
+        addCard(Zone.BATTLEFIELD, playerA, "Icy Manipulator");
+        addCard(Zone.BATTLEFIELD, playerA, "Plains", 2);
+        addCard(Zone.BATTLEFIELD, playerB, "Grizzly Bears");
+
+        // Turn 1: Player A activates Pandorica targeting Bears
+        activateAbility(1, PhaseStep.PRECOMBAT_MAIN, playerA, "{1}{W}, {T}:", "Grizzly Bears");
+
+        // Turn 3: Player A untaps Pandorica
+        setChoice(playerA, true);
+
+        // In response to delayed trigger on upkeep, tap Pandorica again with Icy Manipulator
+        activateAbility(3, PhaseStep.UPKEEP, playerA, "{1}, {T}: Tap target artifact", pandorica);
+
+        setStopAt(3, PhaseStep.PRECOMBAT_MAIN);
+        execute();
+
+        assertPermanentCount(playerB, "Grizzly Bears", 1);
     }
 }

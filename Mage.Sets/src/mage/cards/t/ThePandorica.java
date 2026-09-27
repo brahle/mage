@@ -81,22 +81,22 @@ class ThePandoricaPhaseOutEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Permanent sourcePermanent = source.getSourcePermanentIfItStillExists(game);
         Permanent targetPermanent = game.getPermanent(source.getFirstTarget());
         if (targetPermanent == null) {
             return false;
         }
 
-        // If The Pandorica leaves the battlefield before its activated ability resolves,
-        // target nonland permanent untaps, but it won't phase out and the delayed triggered ability won't be created.
-        if (sourcePermanent == null) {
+        targetPermanent.phaseOut(game);
+
+        Permanent sourcePermanent = source.getSourcePermanentIfItStillExists(game);
+        if (sourcePermanent == null || !sourcePermanent.isTapped()) {
             return true;
         }
 
-        targetPermanent.phaseOut(game);
+        String key = "PandoricaExpired_" + source.getSourceId() + "_" + UUID.randomUUID();
         MageObjectReference mor = new MageObjectReference(targetPermanent, game);
-        game.addEffect(new ThePandoricaPhasePreventEffect(mor), source);
-        game.addDelayedTriggeredAbility(new ThePandoricaDelayedTriggeredAbility(mor), source);
+        game.addEffect(new ThePandoricaPhasePreventEffect(mor, key), source);
+        game.addDelayedTriggeredAbility(new ThePandoricaDelayedTriggeredAbility(mor, key), source);
         return true;
     }
 }
@@ -104,20 +104,35 @@ class ThePandoricaPhaseOutEffect extends OneShotEffect {
 class ThePandoricaPhasePreventEffect extends ContinuousRuleModifyingEffectImpl {
 
     private final MageObjectReference mor;
+    private final String key;
 
-    ThePandoricaPhasePreventEffect(MageObjectReference mor) {
-        super(Duration.WhileOnBattlefield, Outcome.Neutral);
+    ThePandoricaPhasePreventEffect(MageObjectReference mor, String key) {
+        super(Duration.Custom, Outcome.Neutral);
         this.mor = mor;
+        this.key = key;
     }
 
     private ThePandoricaPhasePreventEffect(final ThePandoricaPhasePreventEffect effect) {
         super(effect);
         this.mor = effect.mor;
+        this.key = effect.key;
     }
 
     @Override
     public ThePandoricaPhasePreventEffect copy() {
         return new ThePandoricaPhasePreventEffect(this);
+    }
+
+    @Override
+    public boolean isInactive(Ability source, Game game) {
+        if (Boolean.TRUE.equals(game.getState().getValue(key))) {
+            return true;
+        }
+        Permanent sourcePermanent = source.getSourcePermanentIfItStillExists(game);
+        if (sourcePermanent == null || !sourcePermanent.isTapped()) {
+            return true;
+        }
+        return super.isInactive(source, game);
     }
 
     @Override
@@ -127,21 +142,31 @@ class ThePandoricaPhasePreventEffect extends ContinuousRuleModifyingEffectImpl {
 
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
+        if (Boolean.TRUE.equals(game.getState().getValue(key))) {
+            discard();
+            return false;
+        }
         Permanent sourcePermanent = source.getSourcePermanentIfItStillExists(game);
-        return sourcePermanent != null
-                && sourcePermanent.isTapped()
-                && this.mor.refersTo(event.getTargetId(), game);
+        if (sourcePermanent == null || !sourcePermanent.isTapped()) {
+            discard();
+            return false;
+        }
+        return this.mor.refersTo(event.getTargetId(), game);
     }
 }
 
 class ThePandoricaDelayedTriggeredAbility extends DelayedTriggeredAbility {
 
-    ThePandoricaDelayedTriggeredAbility(MageObjectReference mor) {
-        super(new ThePandoricaPhaseInEffect(mor), Duration.EndOfGame, true, false);
+    private final String key;
+
+    ThePandoricaDelayedTriggeredAbility(MageObjectReference mor, String key) {
+        super(new ThePandoricaPhaseInEffect(mor, key), Duration.EndOfGame, true, false);
+        this.key = key;
     }
 
     private ThePandoricaDelayedTriggeredAbility(final ThePandoricaDelayedTriggeredAbility ability) {
         super(ability);
+        this.key = ability.key;
     }
 
     @Override
@@ -161,10 +186,14 @@ class ThePandoricaDelayedTriggeredAbility extends DelayedTriggeredAbility {
             return false;
         }
         if (event.getType() == GameEvent.EventType.UNTAPPED) {
+            game.getState().setValue(key, true);
             return true;
         }
         if (event.getType() == GameEvent.EventType.ZONE_CHANGE) {
-            return ((ZoneChangeEvent) event).getFromZone() == Zone.BATTLEFIELD;
+            if (((ZoneChangeEvent) event).getFromZone() == Zone.BATTLEFIELD) {
+                game.getState().setValue(key, true);
+                return true;
+            }
         }
         return false;
     }
@@ -178,16 +207,19 @@ class ThePandoricaDelayedTriggeredAbility extends DelayedTriggeredAbility {
 class ThePandoricaPhaseInEffect extends OneShotEffect {
 
     private final MageObjectReference mor;
+    private final String key;
 
-    ThePandoricaPhaseInEffect(MageObjectReference mor) {
+    ThePandoricaPhaseInEffect(MageObjectReference mor, String key) {
         super(Outcome.Benefit);
         this.mor = mor;
+        this.key = key;
         staticText = "that permanent phases in";
     }
 
     private ThePandoricaPhaseInEffect(final ThePandoricaPhaseInEffect effect) {
         super(effect);
         this.mor = effect.mor;
+        this.key = effect.key;
     }
 
     @Override
@@ -197,6 +229,7 @@ class ThePandoricaPhaseInEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
+        game.getState().setValue(key, true);
         Permanent permanent = mor.getPermanent(game);
         if (permanent != null) {
             permanent.phaseIn(game);
