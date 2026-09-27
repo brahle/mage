@@ -3,6 +3,7 @@ package org.mage.test.cards.single.who;
 import mage.constants.CardType;
 import mage.constants.EmptyNames;
 import mage.constants.PhaseStep;
+import mage.constants.Planes;
 import mage.constants.SubType;
 import mage.constants.Zone;
 import mage.game.permanent.Permanent;
@@ -109,5 +110,18 @@ public class MissyTest extends CardTestPlayerBase {
         execute();
 
         assertPermanentCount(playerB, "Sol Ring", 1);
+    }
+
+    @Test
+    public void testVillainousChoiceChaosEnsuesWithPlane() {
+        addPlane(playerA, Planes.PLANE_HEDRON_FIELDS_OF_AGADEEM);
+        addCard(Zone.BATTLEFIELD, playerA, "Missy");
+        setChoice(playerB, false);
+
+        setStrictChooseMode(true);
+        setStopAt(1, PhaseStep.END_TURN);
+        execute();
+
+        assertPermanentCount(playerA, "Eldrazi Token", 1);
     }
 }

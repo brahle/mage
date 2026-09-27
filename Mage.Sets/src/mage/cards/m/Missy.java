@@ -6,6 +6,7 @@ import mage.abilities.common.DiesCreatureTriggeredAbility;
 import mage.abilities.triggers.BeginningOfEndStepTriggeredAbility;
 import mage.abilities.effects.OneShotEffect;
 import mage.abilities.effects.common.FaceVillainousChoiceOpponentsEffect;
+import mage.abilities.effects.common.RollPlanarDieEffect;
 import mage.abilities.effects.common.continuous.BecomePermanentFacedownEffect;
 import mage.cards.Card;
 import mage.cards.CardImpl;
@@ -131,6 +132,6 @@ class MissySecondChoice extends VillainousChoice {
 
     @Override
     public boolean doChoice(Player player, Game game, Ability source) {
-        return true;
+        return RollPlanarDieEffect.chaosEnsues(game, source);
     }
 }
