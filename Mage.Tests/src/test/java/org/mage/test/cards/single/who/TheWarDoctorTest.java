@@ -190,4 +190,23 @@ public class TheWarDoctorTest extends CardTestPlayerBase {
         // 20 - 4 (trigger) - 3 (combat) = 13
         assertLife(playerB, 13);
     }
+
+    @Test
+    public void test_BlinkWithAttackOnStack() {
+        setStrictChooseMode(true);
+        addCard(Zone.BATTLEFIELD, playerA, warDoctor);
+        addCard(Zone.BATTLEFIELD, playerA, "Plains");
+        addCard(Zone.HAND, playerA, "Cloudshift");
+        addCounters(1, PhaseStep.UPKEEP, playerA, warDoctor, CounterType.TIME, 4);
+
+        attack(1, playerA, warDoctor, playerB);
+        addTarget(playerA, playerB);
+        castSpell(1, PhaseStep.DECLARE_ATTACKERS, playerA, "Cloudshift", warDoctor);
+
+        setStopAt(1, PhaseStep.POSTCOMBAT_MAIN);
+        execute();
+
+        // 4 damage from trigger (combat damage does not happen since Doctor was removed from combat by Cloudshift)
+        assertLife(playerB, 16);
+    }
 }

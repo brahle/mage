@@ -168,7 +168,7 @@ class TheWarDoctorDamageEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Permanent permanent = game.getPermanentOrLKIBattlefield(source.getSourceId());
+        Permanent permanent = source.getSourcePermanentOrLKI(game);
         int count = permanent != null ? permanent.getCounters(game).getCount(CounterType.TIME) : 0;
         if (count <= 0) {
             return false;
