@@ -6,6 +6,7 @@ import mage.abilities.Ability;
 import mage.abilities.SpellAbility;
 import mage.abilities.common.SimpleStaticAbility;
 import mage.abilities.triggers.BeginningOfUpkeepTriggeredAbility;
+import mage.abilities.costs.CostAdjuster;
 import mage.abilities.costs.mana.GenericManaCost;
 import mage.abilities.costs.mana.ManaCost;
 import mage.abilities.costs.mana.ManaCosts;
@@ -151,14 +152,47 @@ class AminatouMiracleEffect extends OneShotEffect {
         }
 
         SpellAbility abilityToCast = cardToCast.getSpellAbility().copy();
-        ManaCosts<ManaCost> reducedCost = CardUtil.reduceCost(cardToCast.getManaCost().copy(), 4);
-        reducedCost.removeIf(VariableManaCost.class::isInstance);
-        if (reducedCost.isEmpty()) {
-            reducedCost.add(new GenericManaCost(0));
+        if (cardToCast.getManaCost().stream().anyMatch(VariableManaCost.class::isInstance)) {
+            CostAdjuster existingAdjuster = abilityToCast.getCostAdjuster();
+            abilityToCast.setCostAdjuster(new CostAdjuster() {
+                @Override
+                public void prepareX(Ability ability, Game game) {
+                    if (existingAdjuster != null) {
+                        existingAdjuster.prepareX(ability, game);
+                    }
+                }
+
+                @Override
+                public void prepareCost(Ability ability, Game game) {
+                    if (existingAdjuster != null) {
+                        existingAdjuster.prepareCost(ability, game);
+                    }
+                }
+
+                @Override
+                public void increaseCost(Ability ability, Game game) {
+                    if (existingAdjuster != null) {
+                        existingAdjuster.increaseCost(ability, game);
+                    }
+                }
+
+                @Override
+                public void reduceCost(Ability ability, Game game) {
+                    if (existingAdjuster != null) {
+                        existingAdjuster.reduceCost(ability, game);
+                    }
+                    CardUtil.reduceCost(ability, 4);
+                }
+            });
+        } else {
+            ManaCosts<ManaCost> reducedCost = CardUtil.reduceCost(cardToCast.getManaCost().copy(), 4);
+            if (reducedCost.isEmpty()) {
+                reducedCost.add(new GenericManaCost(0));
+            }
+            ManaCosts<ManaCost> costRef = abilityToCast.getManaCostsToPay();
+            costRef.clear();
+            costRef.add(reducedCost);
         }
-        ManaCosts<ManaCost> costRef = abilityToCast.getManaCostsToPay();
-        costRef.clear();
-        costRef.add(reducedCost);
         controller.cast(abilityToCast, game, false, new ApprovingObject(source, game));
         return true;
     }

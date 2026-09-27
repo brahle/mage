@@ -2,6 +2,7 @@ package org.mage.test.cards.single.dsc;
 
 import mage.constants.PhaseStep;
 import mage.constants.Zone;
+import mage.counters.CounterType;
 import org.junit.Test;
 import org.mage.test.serverside.base.CardTestPlayerBase;
 
@@ -207,5 +208,29 @@ public class AminatouVeilPiercerTest extends CardTestPlayerBase {
         assertTappedCount("Plains", true, 2);
         assertTappedCount("Island", true, 1);
         assertHandCount(playerA, 0);
+    }
+
+    @Test
+    public void test_MiracleVariableX() {
+        setStrictChooseMode(true);
+        addCard(Zone.BATTLEFIELD, playerA, "Aminatou, Veil Piercer");
+        addCard(Zone.BATTLEFIELD, playerA, "Island");
+        addCard(Zone.BATTLEFIELD, playerA, "Forest", 5);
+        addCard(Zone.HAND, playerA, "Reach Through Mists");
+        addCard(Zone.LIBRARY, playerA, "Nyxborn Hydra");
+        addCard(Zone.LIBRARY, playerA, "Swamp", 2);
+        skipInitShuffling();
+
+        addTarget(playerA, "Swamp^Swamp");
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Reach Through Mists");
+        setChoice(playerA, true);
+        setChoice(playerA, true);
+        setChoice(playerA, "X=4");
+
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertCounterCount(playerA, "Nyxborn Hydra", CounterType.P1P1, 4);
+        assertTappedCount("Forest", true, 1);
     }
 }
